@@ -1,0 +1,62 @@
+apps/api/                          # NestJS
+├── src/
+│   ├── db/
+│   │   ├── schema.ts               # seu schema.ts atual
+│   │   └── drizzle.module.ts       # provider global do client Drizzle (mysql2)
+│   │
+│   ├── modules/                    # um módulo Nest por domínio do schema
+│   │   ├── users/
+│   │   │   ├── users.module.ts
+│   │   │   ├── users.controller.ts
+│   │   │   ├── users.service.ts     # aqui entram as queries Drizzle
+│   │   │   └── dto/
+│   │   │       ├── create-user.dto.ts
+│   │   │       └── update-user.dto.ts
+│   │   ├── children/
+│   │   ├── diagnoses/
+│   │   ├── rights-and-benefits/
+│   │   ├── medications/            # CurrentMedications + Prescriptions
+│   │   ├── appointments/           # Appointments + Calendar + Notify
+│   │   ├── forum/                  # Forum + Comments + Likes
+│   │   ├── library/                # library + media
+│   │   └── ai-assistant/
+│   │
+│   ├── auth/
+│   │   ├── auth.module.ts
+│   │   ├── auth.controller.ts
+│   │   ├── jwt.strategy.ts
+│   │   └── guards/
+│   │
+│   ├── common/                     # pipes, filters, decorators reaproveitáveis
+│   ├── app.module.ts
+│   └── main.ts
+├── drizzle/                        # migrations geradas
+├── drizzle.config.ts
+├── .env
+└── package.json
+
+apps/web/                          # Next.js
+├── src/
+│   ├── lib/
+│   │   ├── api-client.ts           # wrapper de fetch pra apps/api (baseURL, headers, tratamento de erro)
+│   │   └── auth.ts                 # sessão no front, token etc.
+│   ├── types/                      # tipos espelhando os DTOs do Nest (ou pacote compartilhado, ver abaixo)
+│   ├── components/
+│   │   ├── ui/
+│   │   ├── agenda/
+│   │   ├── forum/
+│   │   └── biblioteca/
+│   └── app/
+│       ├── (auth)/
+│       ├── (dashboard)/
+│       │   ├── agenda/page.tsx
+│       │   ├── medicamentos/page.tsx
+│       │   ├── biblioteca/page.tsx
+│       │   └── forum/
+│       ├── layout.tsx
+│       └── page.tsx
+├── .env.local
+└── package.json
+
+docs/
+└── (seu diagrama ER, decisões de modelagem, etc.)

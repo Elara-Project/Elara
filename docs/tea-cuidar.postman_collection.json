@@ -1,0 +1,4460 @@
+{
+  "info": {
+    "name": "tea-cuidar API",
+    "description": "Coleção gerada a partir do código da API. Rode as pastas **na ordem** (1 → 11). O token e os ids são salvos sozinhos. Pastas 8 (precisa de admin), 9 (upload) e 10 (IA) têm pré-requisitos — veja a descrição de cada uma.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "adminToken",
+      "value": ""
+    },
+    {
+      "key": "userEmail",
+      "value": ""
+    },
+    {
+      "key": "userId",
+      "value": ""
+    },
+    {
+      "key": "adminEmail",
+      "value": "admin@tea.com"
+    },
+    {
+      "key": "adminSenha",
+      "value": "Admin12345"
+    },
+    {
+      "key": "childId",
+      "value": ""
+    },
+    {
+      "key": "relationshipId",
+      "value": ""
+    },
+    {
+      "key": "diagnosisId",
+      "value": ""
+    },
+    {
+      "key": "therapyId",
+      "value": ""
+    },
+    {
+      "key": "allergyId",
+      "value": ""
+    },
+    {
+      "key": "medicationId",
+      "value": ""
+    },
+    {
+      "key": "libraryId",
+      "value": ""
+    },
+    {
+      "key": "appointmentId",
+      "value": ""
+    },
+    {
+      "key": "calendarId",
+      "value": ""
+    },
+    {
+      "key": "notifyId",
+      "value": ""
+    },
+    {
+      "key": "rightsId",
+      "value": ""
+    },
+    {
+      "key": "forumId",
+      "value": ""
+    },
+    {
+      "key": "commentId",
+      "value": ""
+    },
+    {
+      "key": "mediaId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Conta e login",
+      "description": "Cadastro e login são as únicas rotas realmente públicas junto com a leitura dos catálogos. Todo o resto exige o header `Authorization: Bearer <accessToken>`.",
+      "item": [
+        {
+          "name": "Cadastrar usuário",
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set('userEmail', 'teste' + Date.now() + '@teste.com');"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            },
+            "description": "- Rota pública (cadastro).\n- A resposta **nunca** traz `senha`. `role` nasce sempre como `\"user\"` — não existe campo no body pra mudar isso.\n- `409` se o e-mail já estiver cadastrado.\n- O `UserConfig` do usuário é criado automaticamente junto.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Guilherme Teste\",\n  \"email\": \"{{userEmail}}\",\n  \"senha\": \"senha12345\",\n  \"status\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}",
+                  "if (pm.response.code < 300 && json) {",
+                  "  pm.collectionVariables.set('token', json.accessToken);",
+                  "  pm.collectionVariables.set('userId', json.user.idUser);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "- Resposta: `{ \"accessToken\": \"...\", \"user\": { \"idUser\", \"name\", \"email\", \"role\" } }`.\n- `401` com a mesma mensagem (\"Credenciais inválidas\") para e-mail inexistente OU senha errada; `401` também para usuário inativo (`status: 0`).\n- O token vale **7 dias**. A `role` fica gravada dentro do token: se um usuário virar admin, só vale a partir do próximo login dele.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{userEmail}}\",\n  \"senha\": \"senha12345\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Meu perfil",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "me"
+              ]
+            },
+            "description": "- Retorna `idUser, name, email, status, role, dateCreate`."
+          }
+        },
+        {
+          "name": "Atualizar meu perfil",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "description": "- Só dá pra editar a **própria** conta (outro id → `404`). Admin edita qualquer uma.\n- Senha não é alterada por aqui (não existe troca de senha ainda).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Guilherme Atualizado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Listar todos os usuários (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            },
+            "description": "- Só admin. Usuário comum recebe `403`; sem token, `401`."
+          }
+        },
+        {
+          "name": "Ver usuário por id",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "description": "- Só a própria conta (ou admin); senão `404`."
+          }
+        },
+        {
+          "name": "Excluir conta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}"
+              ]
+            },
+            "description": "- Só a própria conta (ou admin).\n- `409` se a conta já tem dados vinculados (crianças, comentários, documentos...). Conta recém-criada sem dados é excluída normalmente."
+          }
+        },
+        {
+          "name": "Minhas configurações",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user-config",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user-config"
+              ]
+            },
+            "description": "- Retorna `notify`, `theme`, `privacity` (todos `0` ou `1`) e `updateDate`. Nasce no cadastro, valores iniciais: `notify: 1`, `theme: 0` (claro), `privacity: 0`."
+          }
+        },
+        {
+          "name": "Atualizar minhas configurações",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/user-config",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "user-config"
+              ]
+            },
+            "description": "- Todos os campos são opcionais. Não existe `:id` — é sempre a configuração de quem está logado.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"theme\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Catálogos",
+      "description": "Listas pra popular dropdowns (parentesco, diagnóstico, terapia, alergia, medicamento, categoria de documento). Vêm do seed. **`qtt` é contador de uso mantido pelo servidor — nunca é enviado pelo cliente.**",
+      "item": [
+        {
+          "name": "Parentesco — listar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}",
+                  "if (pm.response.code < 300 && json) {",
+                  "  if (Array.isArray(json) && json.length) { pm.collectionVariables.set('relationshipId', json[0].idRelationship); }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/relationships",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "relationships"
+              ]
+            },
+            "description": "- Catálogo compartilhado, **sem login**. Cada item tem `qtt` (contador de uso mantido pelo servidor)."
+          }
+        },
+        {
+          "name": "Diagnósticos — listar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}",
+                  "if (pm.response.code < 300 && json) {",
+                  "  var d = json.find(function(x){return x.nameDiagnosis.indexOf('suporte 2')>=0;}) || json[0]; pm.collectionVariables.set('diagnosisId', d.idDiagnoses);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/diagnoses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "diagnoses"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Terapias — listar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}",
+                  "if (pm.response.code < 300 && json) {",
+                  "  if (Array.isArray(json) && json.length) { pm.collectionVariables.set('therapyId', json[0].idTherapy); }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/therapies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "therapies"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Alergias — listar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}",
+                  "if (pm.response.code < 300 && json) {",
+                  "  if (Array.isArray(json) && json.length) { pm.collectionVariables.set('allergyId', json[0].idAllergies); }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/allergies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "allergies"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Medicamentos — listar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}",
+                  "if (pm.response.code < 300 && json) {",
+                  "  if (Array.isArray(json) && json.length) { pm.collectionVariables.set('medicationId', json[0].idCurrentMedications); }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/medications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "medications"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Categorias de documento — listar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}",
+                  "if (pm.response.code < 300 && json) {",
+                  "  if (Array.isArray(json) && json.length) { pm.collectionVariables.set('libraryId', json[0].idlibrary); }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/library",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "library"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Parentesco — criar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/relationships",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "relationships"
+              ]
+            },
+            "description": "- **Hoje esta rota é aberta (sem login).** Não deveria ser usada pelo app: o cadastro dos itens do catálogo é feito pelo time (seed/admin).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"relationship\": \"Madrinha\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Parentesco — ver um",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/relationships/{{relationshipId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "relationships",
+                "{{relationshipId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Parentesco — atualizar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/relationships/{{relationshipId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "relationships",
+                "{{relationshipId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"relationship\": \"Madrinha\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Parentesco — excluir",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/relationships/{{relationshipId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "relationships",
+                "{{relationshipId}}"
+              ]
+            },
+            "description": "- Se o item estiver em uso por alguma criança/prontuário, o banco recusa e a API responde `500` (ainda não tratado — evite excluir itens em uso)."
+          }
+        },
+        {
+          "name": "Diagnósticos — criar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/diagnoses",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "diagnoses"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nameDiagnosis\": \"Dislexia\",\n  \"stage\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Diagnósticos — ver um",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/diagnoses/{{diagnosisId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "diagnoses",
+                "{{diagnosisId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Diagnósticos — atualizar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/diagnoses/{{diagnosisId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "diagnoses",
+                "{{diagnosisId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nameDiagnosis\": \"Dislexia\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Diagnósticos — excluir",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/diagnoses/{{diagnosisId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "diagnoses",
+                "{{diagnosisId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Terapias — criar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/therapies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "therapies"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nameTherapy\": \"Musicoterapia\",\n  \"type\": \"grupo\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Terapias — ver um",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/therapies/{{therapyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "therapies",
+                "{{therapyId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Terapias — atualizar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/therapies/{{therapyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "therapies",
+                "{{therapyId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nameTherapy\": \"Musicoterapia\",\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Terapias — excluir",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/therapies/{{therapyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "therapies",
+                "{{therapyId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Alergias — criar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/allergies",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "allergies"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"allergenName\": \"Ovo\",\n  \"severity\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Alergias — ver um",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/allergies/{{allergyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "allergies",
+                "{{allergyId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Alergias — atualizar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/allergies/{{allergyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "allergies",
+                "{{allergyId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"allergenName\": \"Ovo\",\n  \"severity\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Alergias — excluir",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/allergies/{{allergyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "allergies",
+                "{{allergyId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Medicamentos — criar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/medications",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "medications"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"medicineName\": \"Fluoxetina\",\n  \"route\": \"oral\",\n  \"instructions\": \"Tomar pela manhã\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Medicamentos — ver um",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/medications/{{medicationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "medications",
+                "{{medicationId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Medicamentos — atualizar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/medications/{{medicationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "medications",
+                "{{medicationId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"medicineName\": \"Fluoxetina\",\n  \"route\": \"oral\",\n  \"instructions\": \"Tomar pela manhã\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Medicamentos — excluir",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/medications/{{medicationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "medications",
+                "{{medicationId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Categorias de documento — criar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/library",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "library"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Vacinas\",\n  \"descript\": \"Cartão de vacinação\",\n  \"icon\": \"syringe\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Categorias de documento — ver um",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/library/{{libraryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "library",
+                "{{libraryId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Categorias de documento — atualizar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/library/{{libraryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "library",
+                "{{libraryId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Vacinas\",\n  \"descript\": \"Cartão de vacinação\",\n  \"icon\": \"syringe\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Categorias de documento — excluir",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/library/{{libraryId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "library",
+                "{{libraryId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Crianças",
+      "description": "Dono da criança = usuário do token. O `userIdUser` nunca vem do body. Criança de outro usuário responde sempre `404` (não `403`), pra não confirmar que o id existe.",
+      "item": [
+        {
+          "name": "Cadastrar criança",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}",
+                  "if (pm.response.code < 300 && json) {",
+                  "  pm.collectionVariables.set('childId', json.idChildren);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/children",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "children"
+              ]
+            },
+            "description": "- `relationshipIdRelationship` vem de `GET /relationships`; `diagnosesIdDiagnoses` (opcional) de `GET /diagnoses`.\n- O diagnóstico da criança é o que libera o acesso aos fóruns daquele diagnóstico.\n- Incrementa o `qtt` do parentesco e do diagnóstico usados.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Filho Teste\",\n  \"dob\": \"2018-05-10\",\n  \"relationshipIdRelationship\": {{relationshipId}},\n  \"diagnosesIdDiagnoses\": {{diagnosisId}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Listar minhas crianças",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/children",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "children"
+              ]
+            },
+            "description": "- Só as crianças do usuário logado."
+          }
+        },
+        {
+          "name": "Ver criança",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/children/{{childId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "children",
+                "{{childId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Atualizar criança",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/children/{{childId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "children",
+                "{{childId}}"
+              ]
+            },
+            "description": "- Trocar parentesco/diagnóstico ajusta os contadores (`qtt`) automaticamente.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Filho Teste Editado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Conferir contador do parentesco",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}",
+                  "pm.test('qtt >= 1', function(){ pm.expect(pm.response.json().qtt).to.be.at.least(1); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/relationships/{{relationshipId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "relationships",
+                "{{relationshipId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Prontuário clínico",
+      "description": "Um prontuário por criança, aninhado em `/children/:childId`. **A criança precisa ter prontuário antes de ter consultas ou prescrições.**",
+      "item": [
+        {
+          "name": "Criar prontuário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/children/{{childId}}/clinical-data",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "children",
+                "{{childId}}",
+                "clinical-data"
+              ]
+            },
+            "description": "- `therapyIdTherapy` e `allergiesIdAllergies` são opcionais.\n- `409` se a criança já tem prontuário.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"familyHistory\": \"Sem histórico relevante\",\n  \"observations\": \"Acompanhamento desde os 3 anos\",\n  \"therapyIdTherapy\": {{therapyId}},\n  \"allergiesIdAllergies\": {{allergyId}}\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Criar prontuário de novo (deve dar 409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 409', function () { pm.response.to.have.status(409); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/children/{{childId}}/clinical-data",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "children",
+                "{{childId}}",
+                "clinical-data"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"familyHistory\": \"xx\",\n  \"observations\": \"yy\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ver prontuário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/children/{{childId}}/clinical-data",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "children",
+                "{{childId}}",
+                "clinical-data"
+              ]
+            },
+            "description": "- `404` se a criança ainda não tem prontuário."
+          }
+        },
+        {
+          "name": "Atualizar prontuário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/children/{{childId}}/clinical-data",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "children",
+                "{{childId}}",
+                "clinical-data"
+              ]
+            },
+            "description": "- Atualiza `lastUpdate` sozinho.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"observations\": \"Atualizado após consulta\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Prescrições",
+      "description": "Uma prescrição é identificada pelo par **(criança, medicamento)** — não existe id próprio. Por isso o `medicationId` aparece na URL.",
+      "item": [
+        {
+          "name": "Prescrever medicamento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/children/{{childId}}/prescriptions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "children",
+                "{{childId}}",
+                "prescriptions"
+              ]
+            },
+            "description": "- `status`: `1` = em uso, `0` = suspenso.\n- Exige prontuário na criança.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"medicationsIdCurrentMedications\": {{medicationId}},\n  \"frequency\": \"2x ao dia\",\n  \"status\": 1,\n  \"startDate\": \"2026-10-01\",\n  \"endDate\": \"2026-12-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Listar prescrições da criança",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/children/{{childId}}/prescriptions",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "children",
+                "{{childId}}",
+                "prescriptions"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ver uma prescrição",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/children/{{childId}}/prescriptions/{{medicationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "children",
+                "{{childId}}",
+                "prescriptions",
+                "{{medicationId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Atualizar prescrição",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/children/{{childId}}/prescriptions/{{medicationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "children",
+                "{{childId}}",
+                "prescriptions",
+                "{{medicationId}}"
+              ]
+            },
+            "description": "- Não dá pra trocar o medicamento (ele faz parte da identidade da linha). Pra trocar: `DELETE` + `POST`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Remover prescrição",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/children/{{childId}}/prescriptions/{{medicationId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "children",
+                "{{childId}}",
+                "prescriptions",
+                "{{medicationId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Agenda (consultas, calendário, lembretes)",
+      "description": "`Calendar` é **gerado e mantido pelo servidor** junto com cada consulta (só leitura pro cliente). Lembretes (`notify`) são criados pelo usuário, com a data escolhida por ele.",
+      "item": [
+        {
+          "name": "Agendar consulta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}",
+                  "if (pm.response.code < 300 && json) {",
+                  "  pm.collectionVariables.set('appointmentId', json.idAppointments);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/children/{{childId}}/appointments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "children",
+                "{{childId}}",
+                "appointments"
+              ]
+            },
+            "description": "- Nasce sempre com `status: \"agendado\"` (não é enviado pelo cliente).\n- Cria automaticamente a entrada correspondente no calendário.\n- `400` se a criança ainda não tem prontuário clínico.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appointmentDateTime\": \"2026-11-10T14:00:00.000Z\",\n  \"reason\": \"Consulta de rotina\",\n  \"local\": \"Clínica X\",\n  \"notes\": \"Levar exames anteriores\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Listar consultas da criança",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/children/{{childId}}/appointments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "children",
+                "{{childId}}",
+                "appointments"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ver consulta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/appointments/{{appointmentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "appointments",
+                "{{appointmentId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Minha agenda (todas as crianças)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}",
+                  "if (pm.response.code < 300 && json) {",
+                  "  var c = json.find(function(x){return String(x.appointmentsIdAppointments)===pm.collectionVariables.get('appointmentId');}); if (c) pm.collectionVariables.set('calendarId', c.idCalendar);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/calendar",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "calendar"
+              ]
+            },
+            "description": "- Alimenta a tela de agenda: todos os compromissos de todas as crianças do usuário."
+          }
+        },
+        {
+          "name": "Ver item do calendário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/calendar/{{calendarId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "calendar",
+                "{{calendarId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Atualizar consulta (confirmar)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/appointments/{{appointmentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "appointments",
+                "{{appointmentId}}"
+              ]
+            },
+            "description": "- Mudar `appointmentDateTime` ou `status` sincroniza o calendário automaticamente.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"confirmado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Criar lembrete",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}",
+                  "if (pm.response.code < 300 && json) {",
+                  "  pm.collectionVariables.set('notifyId', json.idNotify);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notify",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notify"
+              ]
+            },
+            "description": "- A data do lembrete é escolhida pelo cliente (não há regra fixa de antecedência).\n- `sent` nasce `0`. **Atenção:** o envio real da notificação (job que dispara no horário) ainda **não existe** — por ora só o cadastro.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"calendarIdCalendar\": {{calendarId}},\n  \"notifyDate\": \"2026-11-09T14:00:00.000Z\",\n  \"descript\": \"Lembrete 1 dia antes\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Listar lembretes de um item do calendário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notify/calendar/{{calendarId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notify",
+                "calendar",
+                "{{calendarId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Excluir lembrete",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/notify/{{notifyId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "notify",
+                "{{notifyId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Excluir consulta",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/appointments/{{appointmentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "appointments",
+                "{{appointmentId}}"
+              ]
+            },
+            "description": "- Apaga também o item do calendário e os lembretes dele."
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Direitos e benefícios",
+      "description": "Direitos do **responsável** (pertencem ao usuário, não a uma criança).",
+      "item": [
+        {
+          "name": "Cadastrar direito/benefício",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}",
+                  "if (pm.response.code < 300 && json) {",
+                  "  pm.collectionVariables.set('rightsId', json.idRightsAndBenefits);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rights-and-benefits",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rights-and-benefits"
+              ]
+            },
+            "description": "- `category` e `type` só aceitam os valores listados na tabela abaixo (`400` caso contrário).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Passe livre\",\n  \"category\": \"transporte\",\n  \"type\": \"passe_livre\",\n  \"descript\": \"Passe livre interestadual\",\n  \"status\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Listar meus direitos",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rights-and-benefits",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rights-and-benefits"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ver direito",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rights-and-benefits/{{rightsId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rights-and-benefits",
+                "{{rightsId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Atualizar direito",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rights-and-benefits/{{rightsId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rights-and-benefits",
+                "{{rightsId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Excluir direito",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/rights-and-benefits/{{rightsId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "rights-and-benefits",
+                "{{rightsId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Fórum (precisa de um usuário admin)",
+      "description": "O fórum é organizado por **diagnóstico**. O sub-fórum é criado por admin/moderador (mesmo papel); o usuário comum **vê e comenta** nos fóruns dos diagnósticos que algum filho dele tem. Quem tem filhos com diagnósticos diferentes acumula acesso a vários fóruns.",
+      "item": [
+        {
+          "name": "Login como admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}",
+                  "if (pm.response.code < 300 && json) {",
+                  "  pm.collectionVariables.set('adminToken', json.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "description": "- Admin é definido no banco (`role = \"admin\"`); não existe endpoint pra promover usuário.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"senha\": \"{{adminSenha}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Listar todos os usuários (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Criar sub-fórum (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}",
+                  "if (pm.response.code < 300 && json) {",
+                  "  pm.collectionVariables.set('forumId', json.idForum);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/forum",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "forum"
+              ]
+            },
+            "description": "- Só admin (`403` pra usuário comum).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Dicas do dia a dia\",\n  \"diagnosesIdDiagnoses\": {{diagnosisId}},\n  \"descript\": \"Troca de experiências\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Listar sub-fóruns de um diagnóstico",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/diagnoses/{{diagnosisId}}/forum",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "diagnoses",
+                "{{diagnosisId}}",
+                "forum"
+              ]
+            },
+            "description": "- `403` se o usuário não tem nenhum filho com esse diagnóstico."
+          }
+        },
+        {
+          "name": "Ver sub-fórum",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/forum/{{forumId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "forum",
+                "{{forumId}}"
+              ]
+            },
+            "description": "- `403` sem acesso ao diagnóstico do fórum."
+          }
+        },
+        {
+          "name": "Comentar",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}",
+                  "if (pm.response.code < 300 && json) {",
+                  "  pm.collectionVariables.set('commentId', json.idComments);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/forum/{{forumId}}/comments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "forum",
+                "{{forumId}}",
+                "comments"
+              ]
+            },
+            "description": "- Nasce com `status: \"visivel\"`.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Primeiro comentário\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Listar comentários",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/forum/{{forumId}}/comments",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "forum",
+                "{{forumId}}",
+                "comments"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Curtir comentário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/comments/{{commentId}}/likes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "comments",
+                "{{commentId}}",
+                "likes"
+              ]
+            },
+            "description": "- Sem body. Exige acesso ao diagnóstico do fórum."
+          }
+        },
+        {
+          "name": "Curtir de novo (deve dar 409)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 409', function () { pm.response.to.have.status(409); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/comments/{{commentId}}/likes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "comments",
+                "{{commentId}}",
+                "likes"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Contar curtidas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/comments/{{commentId}}/likes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "comments",
+                "{{commentId}}",
+                "likes"
+              ]
+            },
+            "description": "- Resposta: `{ \"count\": n }`."
+          }
+        },
+        {
+          "name": "Descurtir",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/comments/{{commentId}}/likes",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "comments",
+                "{{commentId}}",
+                "likes"
+              ]
+            },
+            "description": "- `404` se o usuário não tinha curtido."
+          }
+        },
+        {
+          "name": "Editar meu comentário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/comments/{{commentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "comments",
+                "{{commentId}}"
+              ]
+            },
+            "description": "- Autor: só dentro de **3 horas** após criar (`403` depois disso) e só no próprio comentário.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Comentário editado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Editar como admin (deixa marca d'água)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}",
+                  "pm.test('marca d\\'agua preenchida', function(){ var j = pm.response.json(); pm.expect(j.previousContent).to.be.a('string'); pm.expect(j.editedByAdminId).to.be.a('number'); });"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/comments/{{commentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "comments",
+                "{{commentId}}"
+              ]
+            },
+            "description": "- Admin edita sem limite de tempo. A resposta passa a trazer `previousContent` (texto anterior), `editedByAdminId` e `editedAt` — o front deve exibir \"editado por moderador\". Só a **última** edição de admin é guardada.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Conteúdo moderado\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Atualizar sub-fórum (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/forum/{{forumId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "forum",
+                "{{forumId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"descript\": \"Descrição atualizada\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Excluir meu comentário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/comments/{{commentId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "comments",
+                "{{commentId}}"
+              ]
+            },
+            "description": "- Mesma regra de 3 horas do autor; admin exclui sempre."
+          }
+        },
+        {
+          "name": "Excluir sub-fórum (admin)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{adminToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/forum/{{forumId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "forum",
+                "{{forumId}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Documentos da criança (precisa do upload configurado)",
+      "description": "Receitas, laudos, exames e fotos, por criança. Upload **multipart/form-data**; arquivos ficam no disco do servidor.",
+      "item": [
+        {
+          "name": "Enviar documento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}",
+                  "if (pm.response.code < 300 && json) {",
+                  "  pm.collectionVariables.set('mediaId', json.idmedia);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/children/{{childId}}/media",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "children",
+                "{{childId}}",
+                "media"
+              ]
+            },
+            "description": "- `multipart/form-data` com os campos de texto `title`, `descript`, `libraryIdlibrary` e o arquivo no campo **`file`**.\n- Aceita **JPG, PNG, WEBP e PDF**, até **10 MB**. Outro tipo → `400`.\n- `libraryIdlibrary` vem de `GET /library` (categoria do documento).",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "title",
+                  "value": "Receita de teste",
+                  "type": "text"
+                },
+                {
+                  "key": "descript",
+                  "value": "Receita enviada pelo Postman",
+                  "type": "text"
+                },
+                {
+                  "key": "libraryIdlibrary",
+                  "value": "{{libraryId}}",
+                  "type": "text"
+                },
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "Selecione um PDF/JPG/PNG/WEBP de até 10MB"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar documentos da criança",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/children/{{childId}}/media",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "children",
+                "{{childId}}",
+                "media"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ver metadados do documento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/media/{{mediaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "media",
+                "{{mediaId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Baixar o arquivo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/media/{{mediaId}}/file",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "media",
+                "{{mediaId}}",
+                "file"
+              ]
+            },
+            "description": "- **Exige o header `Authorization`.** Por isso **não funciona** como `<img src=\"...\">` nem `<a href=\"...\">` direto: o front deve fazer `fetch` com o token, transformar a resposta em `blob` e usar `URL.createObjectURL(blob)`."
+          }
+        },
+        {
+          "name": "Excluir documento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/media/{{mediaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "media",
+                "{{mediaId}}"
+              ]
+            },
+            "description": "- Apaga o registro e o arquivo no disco."
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Assistente de IA (precisa de GEMINI_API_KEY)",
+      "description": "Pergunta/resposta com a IA (Gemini). O servidor aplica um prompt fixo de apoio a pais, com aviso de que não substitui profissional de saúde.",
+      "item": [
+        {
+          "name": "Perguntar ao assistente",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 201', function () { pm.response.to.have.status(201); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai-assistant/ask",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ai-assistant",
+                "ask"
+              ]
+            },
+            "description": "- Limite de **10 perguntas por dia** por usuário (`400` depois disso).\n- `500` com mensagem genérica se a IA estiver indisponível — nada é salvo nesse caso.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question\": \"Quais atividades ajudam na rotina de uma criança com TEA?\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Histórico de perguntas",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 200', function () { pm.response.to.have.status(200); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/ai-assistant/history",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ai-assistant",
+                "history"
+              ]
+            },
+            "description": "- Mais recentes primeiro."
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. Segurança (testes negativos)",
+      "description": "Pra rodar no Collection Runner: todos devem **passar** (cada um espera o erro certo).",
+      "item": [
+        {
+          "name": "Sem token → 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 401', function () { pm.response.to.have.status(401); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/children",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "children"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar usuários sem token → 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 401', function () { pm.response.to.have.status(401); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Excluir usuário sem token → 401",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 401', function () { pm.response.to.have.status(401); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users",
+                "{{userId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Listar usuários com token comum → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 403', function () { pm.response.to.have.status(403); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Criar fórum com token comum → 403",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 403', function () { pm.response.to.have.status(403); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/forum",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "forum"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"x\",\n  \"diagnosesIdDiagnoses\": {{diagnosisId}},\n  \"descript\": \"y\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Criança inexistente/de outro usuário → 404",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 404', function () { pm.response.to.have.status(404); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/children/999999",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "children",
+                "999999"
+              ]
+            }
+          }
+        },
+        {
+          "name": "E-mail repetido → 409",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 409', function () { pm.response.to.have.status(409); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Repetido\",\n  \"email\": \"{{userEmail}}\",\n  \"senha\": \"senha12345\",\n  \"status\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Corpo incompleto (sem senha) → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 400', function () { pm.response.to.have.status(400); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sem senha\",\n  \"email\": \"x{{userEmail}}\",\n  \"status\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Campo extra (isAdmin) → 400",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('status 400', function () { pm.response.to.have.status(400); });",
+                  "var json = null; try { json = pm.response.json(); } catch (err) {}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "auth": {
+              "type": "noauth"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "users"
+              ]
+            },
+            "description": "- Prova que ninguém consegue se promover a admin pelo body.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Espertinho\",\n  \"email\": \"y{{userEmail}}\",\n  \"senha\": \"senha12345\",\n  \"status\": 1,\n  \"isAdmin\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1483 @@
+{
+  "version": "5",
+  "dialect": "mysql",
+  "id": "ca372fe0-3249-49e4-a87d-4f53c30afd58",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "tables": {
+    "aIAssistent": {
+      "name": "aIAssistent",
+      "columns": {
+        "idChat": {
+          "name": "idChat",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "User_idUser": {
+          "name": "User_idUser",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "questions": {
+          "name": "questions",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "answer": {
+          "name": "answer",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "dateTime": {
+          "name": "dateTime",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "aIAssistent_User_idUser_User_idUser_fk": {
+          "name": "aIAssistent_User_idUser_User_idUser_fk",
+          "tableFrom": "aIAssistent",
+          "tableTo": "User",
+          "columnsFrom": [
+            "User_idUser"
+          ],
+          "columnsTo": [
+            "idUser"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "aIAssistent_idChat": {
+          "name": "aIAssistent_idChat",
+          "columns": [
+            "idChat"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "Allergies": {
+      "name": "Allergies",
+      "columns": {
+        "idAllergies": {
+          "name": "idAllergies",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "allergenName": {
+          "name": "allergenName",
+          "type": "varchar(150)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "severity": {
+          "name": "severity",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "Qtt": {
+          "name": "Qtt",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "Allergies_idAllergies": {
+          "name": "Allergies_idAllergies",
+          "columns": [
+            "idAllergies"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "Appointments": {
+      "name": "Appointments",
+      "columns": {
+        "idAppointments": {
+          "name": "idAppointments",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "appointmentDateTime": {
+          "name": "appointmentDateTime",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "enum('agendado','confirmado','concluido','cancelado','remarcado')",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reason": {
+          "name": "reason",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "local": {
+          "name": "local",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "notes": {
+          "name": "notes",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ClinicalData_idClinicalData": {
+          "name": "ClinicalData_idClinicalData",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "fk_appointments_clinicaldata": {
+          "name": "fk_appointments_clinicaldata",
+          "tableFrom": "Appointments",
+          "tableTo": "ClinicalData",
+          "columnsFrom": [
+            "ClinicalData_idClinicalData"
+          ],
+          "columnsTo": [
+            "idClinicalData"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "Appointments_idAppointments": {
+          "name": "Appointments_idAppointments",
+          "columns": [
+            "idAppointments"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "Calendar": {
+      "name": "Calendar",
+      "columns": {
+        "idCalendar": {
+          "name": "idCalendar",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "Appointments_idAppointments": {
+          "name": "Appointments_idAppointments",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "date": {
+          "name": "date",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "enum('agendado','confirmado','concluido','cancelado','remarcado')",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "descript": {
+          "name": "descript",
+          "type": "varchar(45)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "fk_calendar_appointments": {
+          "name": "fk_calendar_appointments",
+          "tableFrom": "Calendar",
+          "tableTo": "Appointments",
+          "columnsFrom": [
+            "Appointments_idAppointments"
+          ],
+          "columnsTo": [
+            "idAppointments"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "Calendar_idCalendar": {
+          "name": "Calendar_idCalendar",
+          "columns": [
+            "idCalendar"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "Children": {
+      "name": "Children",
+      "columns": {
+        "idChildren": {
+          "name": "idChildren",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "Name": {
+          "name": "Name",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "Dob": {
+          "name": "Dob",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "DateCreate": {
+          "name": "DateCreate",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "Relationship_idRelationship": {
+          "name": "Relationship_idRelationship",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "User_idUser": {
+          "name": "User_idUser",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "Diagnoses_idDiagnoses": {
+          "name": "Diagnoses_idDiagnoses",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "ClinicalData_idClinicalData": {
+          "name": "ClinicalData_idClinicalData",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "Children_User_idUser_User_idUser_fk": {
+          "name": "Children_User_idUser_User_idUser_fk",
+          "tableFrom": "Children",
+          "tableTo": "User",
+          "columnsFrom": [
+            "User_idUser"
+          ],
+          "columnsTo": [
+            "idUser"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "Children_Diagnoses_idDiagnoses_Diagnoses_idDiagnoses_fk": {
+          "name": "Children_Diagnoses_idDiagnoses_Diagnoses_idDiagnoses_fk",
+          "tableFrom": "Children",
+          "tableTo": "Diagnoses",
+          "columnsFrom": [
+            "Diagnoses_idDiagnoses"
+          ],
+          "columnsTo": [
+            "idDiagnoses"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "fk_children_relationship": {
+          "name": "fk_children_relationship",
+          "tableFrom": "Children",
+          "tableTo": "Relationship",
+          "columnsFrom": [
+            "Relationship_idRelationship"
+          ],
+          "columnsTo": [
+            "idRelationship"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "fk_children_clinicaldata": {
+          "name": "fk_children_clinicaldata",
+          "tableFrom": "Children",
+          "tableTo": "ClinicalData",
+          "columnsFrom": [
+            "ClinicalData_idClinicalData"
+          ],
+          "columnsTo": [
+            "idClinicalData"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "Children_idChildren": {
+          "name": "Children_idChildren",
+          "columns": [
+            "idChildren"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "ClinicalData": {
+      "name": "ClinicalData",
+      "columns": {
+        "idClinicalData": {
+          "name": "idClinicalData",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "FamilyHistory": {
+          "name": "FamilyHistory",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "observations": {
+          "name": "observations",
+          "type": "varchar(300)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "lastUpdate": {
+          "name": "lastUpdate",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "Therapy_idTherapy": {
+          "name": "Therapy_idTherapy",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "Allergies_idAllergies": {
+          "name": "Allergies_idAllergies",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "ClinicalData_Therapy_idTherapy_Therapy_idTherapy_fk": {
+          "name": "ClinicalData_Therapy_idTherapy_Therapy_idTherapy_fk",
+          "tableFrom": "ClinicalData",
+          "tableTo": "Therapy",
+          "columnsFrom": [
+            "Therapy_idTherapy"
+          ],
+          "columnsTo": [
+            "idTherapy"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "ClinicalData_Allergies_idAllergies_Allergies_idAllergies_fk": {
+          "name": "ClinicalData_Allergies_idAllergies_Allergies_idAllergies_fk",
+          "tableFrom": "ClinicalData",
+          "tableTo": "Allergies",
+          "columnsFrom": [
+            "Allergies_idAllergies"
+          ],
+          "columnsTo": [
+            "idAllergies"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "ClinicalData_idClinicalData": {
+          "name": "ClinicalData_idClinicalData",
+          "columns": [
+            "idClinicalData"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "Comments": {
+      "name": "Comments",
+      "columns": {
+        "idComments": {
+          "name": "idComments",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "enum('visivel','oculto','denunciado','removido')",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "createAt": {
+          "name": "createAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updateAt": {
+          "name": "updateAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "Forum_idForum": {
+          "name": "Forum_idForum",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "User_idUser": {
+          "name": "User_idUser",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "editedByAdminId": {
+          "name": "editedByAdminId",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "previousContent": {
+          "name": "previousContent",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "editedAt": {
+          "name": "editedAt",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "Comments_Forum_idForum_Forum_idForum_fk": {
+          "name": "Comments_Forum_idForum_Forum_idForum_fk",
+          "tableFrom": "Comments",
+          "tableTo": "Forum",
+          "columnsFrom": [
+            "Forum_idForum"
+          ],
+          "columnsTo": [
+            "idForum"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "Comments_User_idUser_User_idUser_fk": {
+          "name": "Comments_User_idUser_User_idUser_fk",
+          "tableFrom": "Comments",
+          "tableTo": "User",
+          "columnsFrom": [
+            "User_idUser"
+          ],
+          "columnsTo": [
+            "idUser"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "Comments_editedByAdminId_User_idUser_fk": {
+          "name": "Comments_editedByAdminId_User_idUser_fk",
+          "tableFrom": "Comments",
+          "tableTo": "User",
+          "columnsFrom": [
+            "editedByAdminId"
+          ],
+          "columnsTo": [
+            "idUser"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "Comments_idComments": {
+          "name": "Comments_idComments",
+          "columns": [
+            "idComments"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "Diagnoses": {
+      "name": "Diagnoses",
+      "columns": {
+        "idDiagnoses": {
+          "name": "idDiagnoses",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "NameDiagnosis": {
+          "name": "NameDiagnosis",
+          "type": "varchar(150)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "Stage": {
+          "name": "Stage",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "Qtt": {
+          "name": "Qtt",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "Diagnoses_idDiagnoses": {
+          "name": "Diagnoses_idDiagnoses",
+          "columns": [
+            "idDiagnoses"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "Forum": {
+      "name": "Forum",
+      "columns": {
+        "idForum": {
+          "name": "idForum",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar(45)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "Diagnoses_idDiagnoses": {
+          "name": "Diagnoses_idDiagnoses",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "descript": {
+          "name": "descript",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "createDate": {
+          "name": "createDate",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "Forum_Diagnoses_idDiagnoses_Diagnoses_idDiagnoses_fk": {
+          "name": "Forum_Diagnoses_idDiagnoses_Diagnoses_idDiagnoses_fk",
+          "tableFrom": "Forum",
+          "tableTo": "Diagnoses",
+          "columnsFrom": [
+            "Diagnoses_idDiagnoses"
+          ],
+          "columnsTo": [
+            "idDiagnoses"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "Forum_idForum": {
+          "name": "Forum_idForum",
+          "columns": [
+            "idForum"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "library": {
+      "name": "library",
+      "columns": {
+        "idlibrary": {
+          "name": "idlibrary",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(45)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "descript": {
+          "name": "descript",
+          "type": "varchar(300)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "icon": {
+          "name": "icon",
+          "type": "varchar(300)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "library_idlibrary": {
+          "name": "library_idlibrary",
+          "columns": [
+            "idlibrary"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "Likes": {
+      "name": "Likes",
+      "columns": {
+        "idLikes": {
+          "name": "idLikes",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "Comments_idComments": {
+          "name": "Comments_idComments",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "User_idUser": {
+          "name": "User_idUser",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "date": {
+          "name": "date",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "Likes_Comments_idComments_Comments_idComments_fk": {
+          "name": "Likes_Comments_idComments_Comments_idComments_fk",
+          "tableFrom": "Likes",
+          "tableTo": "Comments",
+          "columnsFrom": [
+            "Comments_idComments"
+          ],
+          "columnsTo": [
+            "idComments"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "Likes_User_idUser_User_idUser_fk": {
+          "name": "Likes_User_idUser_User_idUser_fk",
+          "tableFrom": "Likes",
+          "tableTo": "User",
+          "columnsFrom": [
+            "User_idUser"
+          ],
+          "columnsTo": [
+            "idUser"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "Likes_idLikes": {
+          "name": "Likes_idLikes",
+          "columns": [
+            "idLikes"
+          ]
+        }
+      },
+      "uniqueConstraints": {
+        "Likes_Comments_idComments_User_idUser_unique": {
+          "name": "Likes_Comments_idComments_User_idUser_unique",
+          "columns": [
+            "Comments_idComments",
+            "User_idUser"
+          ]
+        }
+      },
+      "checkConstraint": {}
+    },
+    "media": {
+      "name": "media",
+      "columns": {
+        "idmedia": {
+          "name": "idmedia",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "User_idUser": {
+          "name": "User_idUser",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "library_idlibrary": {
+          "name": "library_idlibrary",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "Children_idChildren": {
+          "name": "Children_idChildren",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar(50)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "descript": {
+          "name": "descript",
+          "type": "varchar(300)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "imageUrl": {
+          "name": "imageUrl",
+          "type": "varchar(500)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "date": {
+          "name": "date",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "tinyint",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "media_User_idUser_User_idUser_fk": {
+          "name": "media_User_idUser_User_idUser_fk",
+          "tableFrom": "media",
+          "tableTo": "User",
+          "columnsFrom": [
+            "User_idUser"
+          ],
+          "columnsTo": [
+            "idUser"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "media_library_idlibrary_library_idlibrary_fk": {
+          "name": "media_library_idlibrary_library_idlibrary_fk",
+          "tableFrom": "media",
+          "tableTo": "library",
+          "columnsFrom": [
+            "library_idlibrary"
+          ],
+          "columnsTo": [
+            "idlibrary"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "media_Children_idChildren_Children_idChildren_fk": {
+          "name": "media_Children_idChildren_Children_idChildren_fk",
+          "tableFrom": "media",
+          "tableTo": "Children",
+          "columnsFrom": [
+            "Children_idChildren"
+          ],
+          "columnsTo": [
+            "idChildren"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "media_idmedia": {
+          "name": "media_idmedia",
+          "columns": [
+            "idmedia"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "CurrentMedications": {
+      "name": "CurrentMedications",
+      "columns": {
+        "idCurrentMedications": {
+          "name": "idCurrentMedications",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "medicineName": {
+          "name": "medicineName",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "route": {
+          "name": "route",
+          "type": "varchar(45)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "instructions": {
+          "name": "instructions",
+          "type": "varchar(300)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "qtt": {
+          "name": "qtt",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "CurrentMedications_idCurrentMedications": {
+          "name": "CurrentMedications_idCurrentMedications",
+          "columns": [
+            "idCurrentMedications"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "Notify": {
+      "name": "Notify",
+      "columns": {
+        "idNotify": {
+          "name": "idNotify",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "Calendar_idCalendar": {
+          "name": "Calendar_idCalendar",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "notifyDate": {
+          "name": "notifyDate",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "sent": {
+          "name": "sent",
+          "type": "tinyint",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "descript": {
+          "name": "descript",
+          "type": "varchar(45)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "Notify_Calendar_idCalendar_Calendar_idCalendar_fk": {
+          "name": "Notify_Calendar_idCalendar_Calendar_idCalendar_fk",
+          "tableFrom": "Notify",
+          "tableTo": "Calendar",
+          "columnsFrom": [
+            "Calendar_idCalendar"
+          ],
+          "columnsTo": [
+            "idCalendar"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "Notify_idNotify": {
+          "name": "Notify_idNotify",
+          "columns": [
+            "idNotify"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "Prescriptions": {
+      "name": "Prescriptions",
+      "columns": {
+        "ClinicalData_idClinicalData": {
+          "name": "ClinicalData_idClinicalData",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "Medications_idCurrentMedications": {
+          "name": "Medications_idCurrentMedications",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "frequency": {
+          "name": "frequency",
+          "type": "varchar(45)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "Status": {
+          "name": "Status",
+          "type": "tinyint",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "startDate": {
+          "name": "startDate",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "endDate": {
+          "name": "endDate",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "fk_prescriptions_clinicaldata": {
+          "name": "fk_prescriptions_clinicaldata",
+          "tableFrom": "Prescriptions",
+          "tableTo": "ClinicalData",
+          "columnsFrom": [
+            "ClinicalData_idClinicalData"
+          ],
+          "columnsTo": [
+            "idClinicalData"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "fk_prescriptions_medications": {
+          "name": "fk_prescriptions_medications",
+          "tableFrom": "Prescriptions",
+          "tableTo": "CurrentMedications",
+          "columnsFrom": [
+            "Medications_idCurrentMedications"
+          ],
+          "columnsTo": [
+            "idCurrentMedications"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "pk_prescriptions": {
+          "name": "pk_prescriptions",
+          "columns": [
+            "ClinicalData_idClinicalData",
+            "Medications_idCurrentMedications"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "Relationship": {
+      "name": "Relationship",
+      "columns": {
+        "idRelationship": {
+          "name": "idRelationship",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "Relationship": {
+          "name": "Relationship",
+          "type": "varchar(45)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "Qtt": {
+          "name": "Qtt",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "Relationship_idRelationship": {
+          "name": "Relationship_idRelationship",
+          "columns": [
+            "idRelationship"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "RightsAndBenefits": {
+      "name": "RightsAndBenefits",
+      "columns": {
+        "idRightsAndBenefits": {
+          "name": "idRightsAndBenefits",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "User_idUser": {
+          "name": "User_idUser",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar(45)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "category": {
+          "name": "category",
+          "type": "enum('saude','educacao','financeiro','tributario','transporte','trabalho','lazer_acessibilidade')",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "type": {
+          "name": "type",
+          "type": "enum('bpc_loas','isencao_fiscal','passe_livre','aee','prioridade_atendimento','cotas_trabalhistas','carteira_estacionamento','outro')",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "descript": {
+          "name": "descript",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "status": {
+          "name": "status",
+          "type": "tinyint",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "RightsAndBenefits_User_idUser_User_idUser_fk": {
+          "name": "RightsAndBenefits_User_idUser_User_idUser_fk",
+          "tableFrom": "RightsAndBenefits",
+          "tableTo": "User",
+          "columnsFrom": [
+            "User_idUser"
+          ],
+          "columnsTo": [
+            "idUser"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "RightsAndBenefits_idRightsAndBenefits": {
+          "name": "RightsAndBenefits_idRightsAndBenefits",
+          "columns": [
+            "idRightsAndBenefits"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "Therapy": {
+      "name": "Therapy",
+      "columns": {
+        "idTherapy": {
+          "name": "idTherapy",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "nameTherapy": {
+          "name": "nameTherapy",
+          "type": "varchar(100)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "type": {
+          "name": "type",
+          "type": "varchar(45)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "Qtt": {
+          "name": "Qtt",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "Therapy_idTherapy": {
+          "name": "Therapy_idTherapy",
+          "columns": [
+            "idTherapy"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    },
+    "User": {
+      "name": "User",
+      "columns": {
+        "idUser": {
+          "name": "idUser",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "Name": {
+          "name": "Name",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "Email": {
+          "name": "Email",
+          "type": "varchar(200)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "Senha": {
+          "name": "Senha",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "Status": {
+          "name": "Status",
+          "type": "tinyint",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "role": {
+          "name": "role",
+          "type": "enum('user','admin')",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": "'user'"
+        },
+        "DateCreate": {
+          "name": "DateCreate",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "User_idUser": {
+          "name": "User_idUser",
+          "columns": [
+            "idUser"
+          ]
+        }
+      },
+      "uniqueConstraints": {
+        "User_Email_unique": {
+          "name": "User_Email_unique",
+          "columns": [
+            "Email"
+          ]
+        }
+      },
+      "checkConstraint": {}
+    },
+    "UserConfig": {
+      "name": "UserConfig",
+      "columns": {
+        "User_idUser": {
+          "name": "User_idUser",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "notify": {
+          "name": "notify",
+          "type": "tinyint",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "theme": {
+          "name": "theme",
+          "type": "tinyint",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "privacity": {
+          "name": "privacity",
+          "type": "tinyint",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "updateDate": {
+          "name": "updateDate",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "UserConfig_User_idUser_User_idUser_fk": {
+          "name": "UserConfig_User_idUser_User_idUser_fk",
+          "tableFrom": "UserConfig",
+          "tableTo": "User",
+          "columnsFrom": [
+            "User_idUser"
+          ],
+          "columnsTo": [
+            "idUser"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "UserConfig_User_idUser": {
+          "name": "UserConfig_User_idUser",
+          "columns": [
+            "User_idUser"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
+      "checkConstraint": {}
+    }
+  },
+  "views": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "tables": {},
+    "indexes": {}
+  }
+}
