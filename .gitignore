@@ -1,38 +1,22 @@
-# Dependencies
+# dependências e builds
 node_modules/
+dist/
+build/
+.next/
+out/
+coverage/
 
-# Environment variables
+# segredos — NUNCA versionar (use o .env.example como modelo)
 .env
 .env.*
 !.env.example
 
-# Build
-dist/
-build/
-out/
+# arquivos enviados por usuários (documentos médicos!)
+uploads/
 
-# Logs
+# logs e lixo de sistema/editor
 *.log
-logs/
-
-# Test coverage
-coverage/
-
-# IDE
-.vscode/
-.idea/
-
-# OS
+npm-debug.log*
 .DS_Store
 Thumbs.db
-
-# Temporary files
-*.tmp
-*.temp
-
-# NestJS
-.nest/
-
-# Prisma
-# Não ignore o schema ou migrations!
-# prisma/
+.idea/

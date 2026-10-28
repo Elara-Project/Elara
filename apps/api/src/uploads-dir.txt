@@ -1,0 +1,67 @@
+O QUE É
+-------
+UPLOAD_DIR é uma variável de ambiente OPCIONAL que define onde os arquivos
+enviados via POST /children/:childId/media são salvos em disco.
+
+Fica em media/media.service.ts:
+
+  export const MEDIA_UPLOAD_DIR = process.env.UPLOAD_DIR
+    ? join(process.env.UPLOAD_DIR, 'media')
+    : join(process.cwd(), 'uploads', 'media');
+
+
+POR QUE ISSO EXISTE
+--------------------
+Antes, o caminho era fixo: join(process.cwd(), 'uploads', 'media').
+
+process.cwd() não é "a pasta onde o arquivo media.service.ts está" — é a
+pasta de onde o PROCESSO NODE FOI INICIADO. Isso é uma pegadinha clássica
+em Node.js: dois jeitos diferentes de rodar a mesma aplicação podem
+resultar em process.cwd() apontando pra lugares diferentes.
+
+No seu caso hoje, você sempre roda com o terminal dentro de apps/api
+(PS E:\Projects\Elara\apps\api> npm run start:dev), então
+process.cwd() = apps/api, e os arquivos caem em apps/api/uploads/media.
+Funciona.
+
+Mas se amanhã você (ou alguém do time) rodar de outro jeito — por exemplo:
+  - node dist/main.js executado a partir da raiz do monorepo
+  - um gerenciador de processo (PM2, systemd, Docker) configurado com
+    outro diretório de trabalho
+  - um script de deploy que entra em outra pasta antes de subir o processo
+
+...process.cwd() muda, e a pasta uploads/media nasceria em outro lugar.
+NENHUM ERRO aparece nesse cenário — o Multer simplesmente cria a pasta
+nova onde o processo "acha" que está, os arquivos continuam sendo salvos
+e lidos do MESMO lugar (consistente consigo mesmo), só que não é mais
+apps/api/uploads/media como você espera. Isso vira bug de "cadê meus
+arquivos" bem difícil de rastrear, porque nada quebra na hora.
+
+
+COMO FICOU AGORA
+----------------
+Se a variável UPLOAD_DIR existir no .env, ela manda — não importa de onde
+o processo foi iniciado:
+
+  UPLOAD_DIR="E:/Projects/Elara/apps/api/storage"
+
+Isso salvaria os arquivos em E:/Projects/Elara/apps/api/storage/media.
+
+Se UPLOAD_DIR não existir no .env (comportamento padrão, nada muda pra
+você agora), cai no fallback de antes (process.cwd() + uploads/media) —
+ou seja, não é obrigatório configurar nada, só fica disponível pra quando
+precisar.
+
+
+QUANDO VOCÊ VAI PRECISAR MEXER NISSO
+-------------------------------------
+- Se decidir rodar a API via Docker (o WORKDIR do container vira o
+  process.cwd(), quase certamente diferente do que é hoje no Windows)
+- Se decidir rodar em produção com PM2 ou outro gerenciador de processo
+- Se quiser separar onde fica o CÓDIGO de onde ficam os ARQUIVOS enviados
+  (prática comum: código num disco, uploads num volume separado com
+  backup próprio, já que documento médico merece backup mais cuidadoso
+  que código-fonte, que já está no Git)
+
+Até lá, não precisa tocar em nada — é só uma porta já aberta pra quando
+a pergunta aparecer.
