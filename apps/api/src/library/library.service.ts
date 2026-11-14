@@ -1,5 +1,6 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
+import { isForeignKeyViolation } from '../common/db-errors';
 import { DRIZZLE } from '../db/drizzle.module';
 import type { DrizzleDb } from '../db/drizzle.module';
 import { library } from '../db/schema';
@@ -35,7 +36,15 @@ export class LibraryService {
 
   async remove(idlibrary: number) {
     await this.findOne(idlibrary);
-    await this.db.delete(library).where(eq(library.idlibrary, idlibrary));
+    try {
+      await this.db.delete(library).where(eq(library.idlibrary, idlibrary));
+    } catch (error) {
+      // Item ainda referenciado por outra tabela: erro do cliente (409), não 500.
+      if (isForeignKeyViolation(error)) {
+        throw new ConflictException('Não é possível excluir: categoria de documento em uso.');
+      }
+      throw error;
+    }
     return { deleted: true };
   }
 }

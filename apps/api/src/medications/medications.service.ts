@@ -1,5 +1,6 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { eq, sql } from 'drizzle-orm';
+import { isForeignKeyViolation } from '../common/db-errors';
 import { DRIZZLE } from '../db/drizzle.module';
 import type { DrizzleDb } from '../db/drizzle.module';
 import { medications } from '../db/schema';
@@ -41,7 +42,15 @@ export class MedicationsService {
 
   async remove(idCurrentMedications: number) {
     await this.findOne(idCurrentMedications);
-    await this.db.delete(medications).where(eq(medications.idCurrentMedications, idCurrentMedications));
+    try {
+      await this.db.delete(medications).where(eq(medications.idCurrentMedications, idCurrentMedications));
+    } catch (error) {
+      // Item ainda referenciado por outra tabela: erro do cliente (409), não 500.
+      if (isForeignKeyViolation(error)) {
+        throw new ConflictException('Não é possível excluir: medicamento em uso.');
+      }
+      throw error;
+    }
     return { deleted: true };
   }
 
