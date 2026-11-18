@@ -4,7 +4,13 @@ import { drizzle } from 'drizzle-orm/mysql2';
 import { migrate } from 'drizzle-orm/mysql2/migrator';
 
 async function main() {
-  const connection = await mysql.createConnection(process.env.DATABASE_URL!);
+  const connection = await mysql.createConnection({
+    uri: process.env.DATABASE_URL,
+    ssl:
+      process.env.TIDB_ENABLE_SSL === 'true'
+        ? { minVersion: 'TLSv1.2' }
+        : undefined,
+  });
   const db = drizzle(connection, { mode: 'default' });
   await migrate(db, { migrationsFolder: './drizzle' });
   console.log('Migrations aplicadas com sucesso');

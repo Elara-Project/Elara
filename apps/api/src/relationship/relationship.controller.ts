@@ -7,21 +7,23 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Roles } from '../common/decorators/roles.decorator';
+import { RolesGuard } from '../common/guards/roles.guard';
 import { RelationshipService } from './relationship.service';
 import { CreateRelationshipDto } from './dto/create-relationship.dto';
 import { UpdateRelationshipDto } from './dto/update-relationship.dto';
 
-// Sem @UseGuards de propósito: qualquer usuário logado (ou não) pode
-// LER a lista pra popular um dropdown no cadastro de criança. Se quiser
-// restringir create/update/remove a um admin, dá pra separar em rotas
-// próprias com um AdminGuard depois — não implementei isso agora pra
-// não travar seu fluxo de cadastro no meio do desenvolvimento.
+// Leitura pública para popular os dropdowns; alterações só por administrador.
 @Controller('relationships')
 export class RelationshipController {
   constructor(private readonly relationshipService: RelationshipService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   create(@Body() dto: CreateRelationshipDto) {
     return this.relationshipService.create(dto);
   }
@@ -37,11 +39,15 @@ export class RelationshipController {
   }
 
   @Patch(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateRelationshipDto) {
     return this.relationshipService.update(id, dto);
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.relationshipService.remove(id);
   }

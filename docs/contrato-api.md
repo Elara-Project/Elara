@@ -437,7 +437,7 @@ Listas pra popular dropdowns (parentesco, diagnóstico, terapia, alergia, medica
 }
 ```
 - **Resposta de sucesso:** `201` — modelo **Parentesco**
-- **Hoje esta rota é aberta (sem login).** Não deveria ser usada pelo app: o cadastro dos itens do catálogo é feito pelo time (seed/admin).
+- **Acesso:** 🔒 login com papel `admin`. O app não chama esta rota; os itens iniciais vêm do seed.
 
 #### `GET /relationships/:id` — Parentesco — ver um
 
@@ -1413,6 +1413,6 @@ Pra ninguém se surpreender na hora de integrar ou apresentar:
 3. **Promover alguém a admin** é manual no banco (não há endpoint). Não existe tela de administração.
 4. **Troca de senha / recuperação de senha:** não existe.
 5. **Token:** 7 dias, sem renovação automática (refresh token). Passou disso, novo login.
-6. **Catálogos** (`/relationships`, `/diagnoses`, `/therapies`, `/allergies`, `/medications`, `/library`): a leitura é pública, mas `POST/PATCH/DELETE` também estão **abertos sem login** hoje. O app não deve chamá-los; o cadastro dos itens é feito pelo time.
+6. **Catálogos** (`/relationships`, `/diagnoses`, `/therapies`, `/allergies`, `/medications`, `/library`): leitura pública; `POST/PATCH/DELETE` exigem login de administrador. O app não deve chamá-los; os itens iniciais vêm do seed.
 7. **Exclusão de conta** só funciona para conta sem dados vinculados (senão `409`).
 8. **Privacidade (IA):** o assistente usa a camada gratuita do Gemini, em que o Google pode usar os textos enviados pra melhorar produtos. Orientar usuários a **não** colocar dados identificáveis da criança nas perguntas.

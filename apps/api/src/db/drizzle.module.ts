@@ -17,6 +17,10 @@ export const DRIZZLE = Symbol('DRIZZLE');
       useFactory: async () => {
         const pool = mysql.createPool({
           uri: process.env.DATABASE_URL,
+          ssl:
+            process.env.TIDB_ENABLE_SSL === 'true'
+              ? { minVersion: 'TLSv1.2' }
+              : undefined,
         });
         return drizzle(pool, { schema, mode: 'default' });
       },

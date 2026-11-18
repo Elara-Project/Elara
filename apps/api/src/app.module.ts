@@ -21,8 +21,10 @@ import { UserConfigModule } from './user-config/user-config.module';
 import { RightsAndBenefitsModule } from './rights-and-benefits/rights-and-benefits.module';
 import { MedicationsModule } from './medications/medications.module';
 import { PrescriptionsModule } from './prescriptions/prescriptions.module';
+import { HealthController } from './health.controller';
 
 @Module({
+  controllers: [HealthController],
   imports: [
     DrizzleModule,
     UsersModule,

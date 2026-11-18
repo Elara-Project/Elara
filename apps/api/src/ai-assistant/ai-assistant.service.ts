@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, InternalServerErrorException, ServiceUnavailableException } from '@nestjs/common';
 import { GoogleGenAI } from '@google/genai';
 import { and, desc, eq, gte } from 'drizzle-orm';
 import { DRIZZLE } from '../db/drizzle.module';
@@ -25,24 +25,25 @@ Seja empático, direto e evite jargão técnico desnecessário.`;
 
 @Injectable()
 export class AiAssistantService {
-  private readonly client: GoogleGenAI;
+  private readonly client: GoogleGenAI | null;
 
   constructor(@Inject(DRIZZLE) private readonly db: DrizzleDb) {
     // Falha rápido na inicialização se a chave não existir, em vez de
     // deixar todo POST /ai-assistant/ask quebrar silenciosamente depois.
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error('GEMINI_API_KEY não definida no .env');
-    }
-    this.client = new GoogleGenAI({ apiKey });
+    this.client = apiKey ? new GoogleGenAI({ apiKey }) : null;
   }
 
   async ask(userIdUser: number, question: string) {
+    const client = this.client;
+    if (!client) {
+      throw new ServiceUnavailableException('Assistente de IA não configurado');
+    }
     await this.assertUnderDailyLimit(userIdUser);
 
     let answerText: string;
     try {
-      const response = await this.client.models.generateContent({
+      const response = await client.models.generateContent({
         // Flash-Lite não-preview: modelo estável do tier grátis, sem risco
         // de ser descontinuado no meio do semestre como um "preview" pode.
         model: 'gemini-2.5-flash-lite',
