@@ -144,6 +144,7 @@ Nomes exatamente como chegam no JSON. "pode ser nulo" = campo opcional que vem `
 | `therapyIdTherapy` | número | pode ser nulo |
 | `therapyIds` | lista de números | pode conter várias terapias; campo singular mantido por compatibilidade |
 | `allergiesIdAllergies` | número | pode ser nulo |
+| `allergiesText` | texto | nomes de alergias livres separados por vírgulas |
 
 ### Prescrição
 
@@ -787,13 +788,15 @@ Um prontuário por criança, aninhado em `/children/:childId`. **A criança prec
 | `therapyIds` | não | lista de IDs inteiros sem repetição |
 | `allergiesIdAllergies` | não | inteiro |
 | `allergiesIds` | não | lista de IDs inteiros sem repetição |
+| `allergiesText` | não | texto livre, até 1000 caracteres |
 
 ```json
 {
   "familyHistory": "Sem histórico relevante",
   "observations": "Acompanhamento desde os 3 anos",
   "therapyIds": [1, 2],
-  "allergiesIds": [1]
+  "allergiesIds": [1],
+  "allergiesText": "ovo, camarão, dipirona"
 }
 ```
 - **Resposta de sucesso:** `201` — modelo **Prontuário clínico**
@@ -839,6 +842,7 @@ Um prontuário por criança, aninhado em `/children/:childId`. **A criança prec
 | `therapyIds` | não | lista de IDs inteiros sem repetição; substitui a seleção atual |
 | `allergiesIdAllergies` | não | inteiro |
 | `allergiesIds` | não | lista de IDs inteiros sem repetição; substitui a seleção atual |
+| `allergiesText` | não | texto livre até 1000 caracteres; string vazia limpa o campo |
 
 ```json
 {
@@ -1414,6 +1418,7 @@ Pra rodar no Collection Runner: todos devem **passar** (cada um espera o erro ce
 - `POST/PATCH /children` também aceita `diagnosesIds` (lista de IDs), `school` e `cid`. A resposta de criança inclui `diagnosesIds`; `diagnosesIdDiagnoses` continua disponível para compatibilidade.
 - `POST/PATCH /children/:childId/clinical-data` aceita `allergiesIds` (lista de IDs). A resposta inclui `allergiesIds`; o campo singular antigo continua disponível.
 - `POST/PATCH /children/:childId/clinical-data` aceita `therapyIds` (lista de IDs). A resposta inclui `therapyIds`; `therapyIdTherapy` continua disponível para compatibilidade.
+- `POST/PATCH /children/:childId/clinical-data` aceita `allergiesText` para nomes de alergias fora do catálogo; a resposta inclui esse texto.
 - `GET/POST /children/:childId/care` lista e registra itens de alimentação e horários. Cada item recebe `kind` (`alimentacao` ou `horario`), `title`, `details` e, opcionalmente, `time` e `weekdays`. `PATCH/DELETE /children/:childId/care/:id` atualiza ou remove o item.
 - Perfil (`GET /users/me`, `PATCH /users/:id`) inclui `cpf` e `phone` opcionais.
 - Lembretes vencidos são enviados por e-mail a cada minuto quando `RESEND_API_KEY` e `RESEND_FROM_EMAIL` estão configurados no servidor. Contas com notificações desativadas não recebem o envio.

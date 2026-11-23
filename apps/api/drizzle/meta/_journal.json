@@ -29,6 +29,13 @@
       "when": 1795407694076,
       "tag": "0003_clinical_data_therapies",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1795412359550,
+      "tag": "0004_clinical_data_custom_allergies",
+      "breakpoints": true
     }
   ]
 }

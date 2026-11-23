@@ -42,6 +42,7 @@ export class ClinicalDataService {
         lastUpdate: new Date(),
         therapyIdTherapy: therapyIds[0] ?? null,
         allergiesIdAllergies: allergyIds[0] ?? null,
+        allergiesText: dto.allergiesText?.trim() || null,
       });
 
       const newIdClinicalData = result[0].insertId;
@@ -108,6 +109,7 @@ export class ClinicalDataService {
           ...(dto.observations !== undefined ? { observations: dto.observations } : {}),
           ...(nextTherapies !== undefined ? { therapyIdTherapy: nextTherapies[0] ?? null } : {}),
           ...(dto.allergiesIds !== undefined ? { allergiesIdAllergies: dto.allergiesIds[0] ?? null } : dto.allergiesIdAllergies !== undefined ? { allergiesIdAllergies: dto.allergiesIdAllergies } : {}),
+          ...(dto.allergiesText !== undefined ? { allergiesText: dto.allergiesText.trim() || null } : {}),
           lastUpdate: new Date(),
         })
         .where(eq(clinicalData.idClinicalData, current.idClinicalData));

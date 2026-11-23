@@ -143,6 +143,7 @@ export const clinicalData = mysqlTable('ClinicalData', {
   allergiesIdAllergies: int('Allergies_idAllergies').references(
     () => allergies.idAllergies,
   ),
+  allergiesText: varchar('AllergiesText', { length: 1000 }),
 });
 
 // ==========================================

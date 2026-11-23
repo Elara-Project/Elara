@@ -1,0 +1,1 @@
+ALTER TABLE `ClinicalData` ADD `AllergiesText` varchar(1000);
