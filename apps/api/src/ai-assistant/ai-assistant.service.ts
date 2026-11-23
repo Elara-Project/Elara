@@ -54,6 +54,20 @@ export class AiAssistantService {
     } catch (error) {
       // Nunca gravamos linha nenhuma se a chamada de IA falhou — não faz
       // sentido salvar "pergunta sem resposta" no histórico do usuário.
+      // Registra somente metadados de erro para diagnóstico. Não registrar
+      // a pergunta, a chave da API nem o corpo completo da resposta externa.
+      const details = error && typeof error === 'object'
+        ? error as { name?: unknown; status?: unknown; code?: unknown }
+        : {};
+      console.error('Falha na chamada ao Gemini', {
+        name: typeof details.name === 'string' ? details.name : 'UnknownError',
+        status: typeof details.status === 'number' || typeof details.status === 'string'
+          ? details.status
+          : undefined,
+        code: typeof details.code === 'string' && /^[A-Z0-9_]+$/.test(details.code)
+          ? details.code
+          : undefined,
+      });
       throw new InternalServerErrorException('Não foi possível consultar o assistente agora');
     }
 
