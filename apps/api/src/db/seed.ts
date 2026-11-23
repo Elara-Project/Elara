@@ -1,7 +1,8 @@
 import 'dotenv/config';
 import mysql from 'mysql2/promise';
 import { drizzle } from 'drizzle-orm/mysql2';
-import { relationship, diagnoses, therapy, allergies, library, medications } from './schema';
+import { eq } from 'drizzle-orm';
+import { relationship, diagnoses, therapy, allergies, library, medications, user } from './schema';
 
 // Script standalone — roda FORA do NestJS (sem Nest.create, sem DI), só
 // abre uma conexão direta e insere. Rode com: npx tsx src/db/seed.ts
@@ -136,6 +137,23 @@ async function seed() {
     console.log('✓ CurrentMedications semeada (3 linhas)');
   } else {
     console.log('- CurrentMedications já tinha dados, pulei');
+  }
+
+  // Bootstrap opcional de uma conta administradora. O e-mail vem somente
+  // do ambiente do servidor; nunca do body de uma requisição pública.
+  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  if (adminEmail) {
+    const [adminAccount] = await db
+      .select({ idUser: user.idUser })
+      .from(user)
+      .where(eq(user.email, adminEmail))
+      .limit(1);
+    if (adminAccount) {
+      await db.update(user).set({ role: 'admin' }).where(eq(user.idUser, adminAccount.idUser));
+      console.log('✓ Conta administradora configurada pelo ambiente');
+    } else {
+      console.warn('ADMIN_EMAIL não corresponde a uma conta cadastrada; nenhuma promoção foi feita.');
+    }
   }
 
   await pool.end();
