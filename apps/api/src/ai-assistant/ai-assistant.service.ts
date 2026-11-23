@@ -43,14 +43,29 @@ export class AiAssistantService {
 
     let answerText: string;
     try {
-      const response = await client.models.generateContent({
-        // Flash-Lite atual para novas integrações. O 2.5 Flash-Lite deixou
-        // de estar disponível para novos usuários da API Gemini.
-        model: 'gemini-3.5-flash-lite',
-        contents: question,
-        config: { systemInstruction: SYSTEM_PROMPT },
-      });
-      answerText = response.text ?? '';
+      // Chamadas feitas em sequência podem encontrar o limite momentâneo do
+      // provedor. Tenta novamente duas vezes em erros temporários antes de
+      // mostrar falha para a pessoa usuária.
+      for (let attempt = 0; ; attempt += 1) {
+        try {
+          const response = await client.models.generateContent({
+            // Flash-Lite atual para novas integrações. O 2.5 Flash-Lite deixou
+            // de estar disponível para novos usuários da API Gemini.
+            model: 'gemini-3.5-flash-lite',
+            contents: question,
+            config: { systemInstruction: SYSTEM_PROMPT },
+          });
+          answerText = response.text ?? '';
+          break;
+        } catch (error) {
+          const status = error && typeof error === 'object'
+            ? (error as { status?: unknown }).status
+            : undefined;
+          const retryable = status === 429 || status === 503;
+          if (!retryable || attempt >= 2) throw error;
+          await new Promise((resolve) => setTimeout(resolve, 1500 * (attempt + 1)));
+        }
+      }
     } catch (error) {
       // Nunca gravamos linha nenhuma se a chamada de IA falhou — não faz
       // sentido salvar "pergunta sem resposta" no histórico do usuário.
