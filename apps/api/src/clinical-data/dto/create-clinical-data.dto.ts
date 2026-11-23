@@ -1,4 +1,4 @@
-import { IsInt, IsOptional, IsString, MinLength } from 'class-validator';
+import { ArrayUnique, IsArray, IsInt, IsOptional, IsString, MinLength } from 'class-validator';
 
 export class CreateClinicalDataDto {
   @IsString()
@@ -16,4 +16,10 @@ export class CreateClinicalDataDto {
   @IsOptional()
   @IsInt()
   allergiesIdAllergies?: number;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @IsInt({ each: true })
+  allergiesIds?: number[];
 }

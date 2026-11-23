@@ -82,6 +82,8 @@ export class UsersService {
         status: user.status,
         role: user.role,
         dateCreate: user.dateCreate,
+        cpf: user.cpf,
+        phone: user.phone,
       })
       .from(user)
       .where(eq(user.idUser, idUser));

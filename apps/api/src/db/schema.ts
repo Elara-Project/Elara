@@ -55,6 +55,8 @@ export const user = mysqlTable('User', {
   status: tinyint('Status').notNull(),
   role: mysqlEnum('role', ['user', 'admin']).notNull().default('user'), // admin = moderador, mesmo nível
   dateCreate: datetime('DateCreate').notNull(),
+  cpf: varchar('Cpf', { length: 14 }),
+  phone: varchar('Phone', { length: 20 }),
 });
 
 // ==========================================
@@ -159,6 +161,8 @@ export const children = mysqlTable('Children', {
     () => diagnoses.idDiagnoses,
   ),
   clinicalDataIdClinicalData: int('ClinicalData_idClinicalData'),
+  school: varchar('School', { length: 200 }),
+  cid: varchar('Cid', { length: 30 }),
 }, (table) => ({
   // Nomes manuais: o nome automático do Drizzle passa de 64 caracteres
   // (limite de identificador do MySQL) e a migration quebra.
@@ -172,6 +176,39 @@ export const children = mysqlTable('Children', {
     columns: [table.clinicalDataIdClinicalData],
     foreignColumns: [clinicalData.idClinicalData],
   }),
+}));
+
+// Associações adicionais permitem mais de um diagnóstico por criança sem
+// remover a FK antiga, ainda usada por telas e integrações anteriores.
+export const childDiagnoses = mysqlTable('ChildDiagnoses', {
+  childrenIdChildren: int('Children_idChildren').notNull(),
+  diagnosesIdDiagnoses: int('Diagnoses_idDiagnoses').notNull(),
+}, (table) => ({
+  pk: primaryKey({ name: 'pk_child_diagnoses', columns: [table.childrenIdChildren, table.diagnosesIdDiagnoses] }),
+  fkChild: foreignKey({ name: 'fk_childdiagnoses_child', columns: [table.childrenIdChildren], foreignColumns: [children.idChildren] }),
+  fkDiagnosis: foreignKey({ name: 'fk_childdiagnoses_diagnosis', columns: [table.diagnosesIdDiagnoses], foreignColumns: [diagnoses.idDiagnoses] }),
+}));
+
+export const clinicalDataAllergies = mysqlTable('ClinicalDataAllergies', {
+  clinicalDataIdClinicalData: int('ClinicalData_idClinicalData').notNull(),
+  allergiesIdAllergies: int('Allergies_idAllergies').notNull(),
+}, (table) => ({
+  pk: primaryKey({ name: 'pk_clinical_data_allergies', columns: [table.clinicalDataIdClinicalData, table.allergiesIdAllergies] }),
+  fkClinicalData: foreignKey({ name: 'fk_clindataallergies_data', columns: [table.clinicalDataIdClinicalData], foreignColumns: [clinicalData.idClinicalData] }),
+  fkAllergy: foreignKey({ name: 'fk_clindataallergies_allergy', columns: [table.allergiesIdAllergies], foreignColumns: [allergies.idAllergies] }),
+}));
+
+export const careItems = mysqlTable('CareItems', {
+  idCareItem: int('idCareItem').autoincrement().primaryKey(),
+  childrenIdChildren: int('Children_idChildren').notNull(),
+  kind: mysqlEnum('kind', ['alimentacao', 'horario']).notNull(),
+  title: varchar('title', { length: 120 }).notNull(),
+  details: varchar('details', { length: 500 }).notNull(),
+  time: varchar('time', { length: 5 }),
+  weekdays: varchar('weekdays', { length: 30 }),
+  createdAt: datetime('createdAt').notNull(),
+}, (table) => ({
+  fkChild: foreignKey({ name: 'fk_careitems_child', columns: [table.childrenIdChildren], foreignColumns: [children.idChildren] }),
 }));
 
 // ==========================================

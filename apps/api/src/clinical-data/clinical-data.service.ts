@@ -7,7 +7,7 @@ import {
 import { eq } from 'drizzle-orm';
 import { DRIZZLE } from '../db/drizzle.module';
 import type { DrizzleDb } from '../db/drizzle.module';
-import { clinicalData, children } from '../db/schema';
+import { clinicalData, children, clinicalDataAllergies } from '../db/schema';
 import { ChildrenService } from '../children/children.service';
 import { TherapyService } from '../therapy/therapy.service';
 import { AllergiesService } from '../allergies/allergies.service';
@@ -28,6 +28,7 @@ export class ClinicalDataService {
   // pertencer ao usuário logado, então a checagem de ownership acontece ali.
   async createForChild(userIdUser: number, idChildren: number, dto: CreateClinicalDataDto) {
     const child = await this.childrenService.findOne(userIdUser, idChildren);
+    const allergyIds = [...new Set(dto.allergiesIds ?? (dto.allergiesIdAllergies ? [dto.allergiesIdAllergies] : []))];
 
     if (child.clinicalDataIdClinicalData) {
       throw new ConflictException('Essa criança já tem um prontuário clínico');
@@ -39,7 +40,7 @@ export class ClinicalDataService {
         observations: dto.observations,
         lastUpdate: new Date(),
         therapyIdTherapy: dto.therapyIdTherapy,
-        allergiesIdAllergies: dto.allergiesIdAllergies,
+        allergiesIdAllergies: allergyIds[0] ?? null,
       });
 
       const newIdClinicalData = result[0].insertId;
@@ -55,8 +56,9 @@ export class ClinicalDataService {
       if (dto.therapyIdTherapy) {
         await this.therapyService.incrementUsage(dto.therapyIdTherapy, tx);
       }
-      if (dto.allergiesIdAllergies) {
-        await this.allergiesService.incrementUsage(dto.allergiesIdAllergies, tx);
+      if (allergyIds.length) {
+        await tx.insert(clinicalDataAllergies).values(allergyIds.map((allergiesIdAllergies) => ({ clinicalDataIdClinicalData: newIdClinicalData, allergiesIdAllergies })));
+        for (const id of allergyIds) await this.allergiesService.incrementUsage(id, tx);
       }
 
       return newIdClinicalData;
@@ -73,7 +75,8 @@ export class ClinicalDataService {
     if (!found) {
       throw new NotFoundException(`ClinicalData ${idClinicalData} não encontrado`);
     }
-    return found;
+    const links = await this.db.select().from(clinicalDataAllergies).where(eq(clinicalDataAllergies.clinicalDataIdClinicalData, idClinicalData));
+    return { ...found, allergiesIds: links.length ? links.map((link) => link.allergiesIdAllergies) : (found.allergiesIdAllergies ? [found.allergiesIdAllergies] : []) };
   }
 
   // Não existe FK ClinicalData -> User, então "esse prontuário é seu?" só
@@ -92,7 +95,13 @@ export class ClinicalDataService {
     await this.db.transaction(async (tx) => {
       await tx
         .update(clinicalData)
-        .set({ ...dto, lastUpdate: new Date() })
+        .set({
+          ...(dto.familyHistory !== undefined ? { familyHistory: dto.familyHistory } : {}),
+          ...(dto.observations !== undefined ? { observations: dto.observations } : {}),
+          ...(dto.therapyIdTherapy !== undefined ? { therapyIdTherapy: dto.therapyIdTherapy } : {}),
+          ...(dto.allergiesIds !== undefined ? { allergiesIdAllergies: dto.allergiesIds[0] ?? null } : dto.allergiesIdAllergies !== undefined ? { allergiesIdAllergies: dto.allergiesIdAllergies } : {}),
+          lastUpdate: new Date(),
+        })
         .where(eq(clinicalData.idClinicalData, current.idClinicalData));
 
       if (dto.therapyIdTherapy && dto.therapyIdTherapy !== current.therapyIdTherapy) {
@@ -102,11 +111,17 @@ export class ClinicalDataService {
         await this.therapyService.incrementUsage(dto.therapyIdTherapy, tx);
       }
 
-      if (dto.allergiesIdAllergies && dto.allergiesIdAllergies !== current.allergiesIdAllergies) {
-        if (current.allergiesIdAllergies) {
-          await this.allergiesService.decrementUsage(current.allergiesIdAllergies, tx);
+      const nextAllergies = dto.allergiesIds ?? (dto.allergiesIdAllergies !== undefined ? (dto.allergiesIdAllergies ? [dto.allergiesIdAllergies] : []) : undefined);
+      if (nextAllergies !== undefined) {
+        const oldIds = current.allergiesIds ?? [];
+        const oldSet = new Set(oldIds);
+        const newSet = new Set(nextAllergies);
+        await tx.delete(clinicalDataAllergies).where(eq(clinicalDataAllergies.clinicalDataIdClinicalData, current.idClinicalData));
+        if (nextAllergies.length) {
+          await tx.insert(clinicalDataAllergies).values([...newSet].map((allergiesIdAllergies) => ({ clinicalDataIdClinicalData: current.idClinicalData, allergiesIdAllergies })));
         }
-        await this.allergiesService.incrementUsage(dto.allergiesIdAllergies, tx);
+        for (const id of oldSet) if (!newSet.has(id)) await this.allergiesService.decrementUsage(id, tx);
+        for (const id of newSet) if (!oldSet.has(id)) await this.allergiesService.incrementUsage(id, tx);
       }
     });
 

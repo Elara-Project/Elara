@@ -89,7 +89,7 @@ export class AppointmentsService {
   }
 
   async update(userIdUser: number, idAppointments: number, dto: UpdateAppointmentDto) {
-    await this.findOneOwned(userIdUser, idAppointments); // valida ownership
+    const current = await this.findOneOwned(userIdUser, idAppointments); // valida ownership
 
     await this.db.transaction(async (tx) => {
       const updateData: Record<string, unknown> = { ...dto };
@@ -108,10 +108,26 @@ export class AppointmentsService {
         if (dto.appointmentDateTime) calendarUpdate.date = new Date(dto.appointmentDateTime);
         if (dto.status) calendarUpdate.status = dto.status;
 
+        const calendarRows = await tx.select({ idCalendar: calendar.idCalendar }).from(calendar)
+          .where(eq(calendar.appointmentsIdAppointments, idAppointments));
         await tx
           .update(calendar)
           .set(calendarUpdate)
           .where(eq(calendar.appointmentsIdAppointments, idAppointments));
+
+        if (dto.appointmentDateTime) {
+          const nextDate = new Date(dto.appointmentDateTime);
+          for (const row of calendarRows) {
+            const pending = await tx.select().from(notify).where(and(eq(notify.calendarIdCalendar, row.idCalendar), eq(notify.sent, 0)));
+            for (const reminder of pending) {
+              const leadTime = current.appointmentDateTime.getTime() - reminder.notifyDate.getTime();
+              await tx.update(notify).set({ notifyDate: new Date(nextDate.getTime() - leadTime) }).where(eq(notify.idNotify, reminder.idNotify));
+            }
+          }
+        }
+        if (dto.status === 'cancelado' && calendarRows.length) {
+          await tx.delete(notify).where(and(inArray(notify.calendarIdCalendar, calendarRows.map((row) => row.idCalendar)), eq(notify.sent, 0)));
+        }
       }
     });
 

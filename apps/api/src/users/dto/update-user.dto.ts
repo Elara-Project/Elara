@@ -1,4 +1,4 @@
-import { IsEmail, IsIn, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validator';
 
 // Escrito na mão (sem PartialType/OmitType de @nestjs/mapped-types) para
 // evitar o ERR_REQUIRE_ESM que esse pacote pode causar dependendo da versão
@@ -17,4 +17,14 @@ export class UpdateUserDto {
   @IsOptional()
   @IsIn([0, 1])
   status?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(14)
+  cpf?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  phone?: string;
 }

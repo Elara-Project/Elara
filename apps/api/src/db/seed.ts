@@ -39,18 +39,42 @@ async function seed() {
   // (ChildrenService incrementa via Diagnoses), o banco já aplica
   // default(0) sozinho. stage ainda é placeholder (1/2/3 = nível de
   // suporte), ajuste se tiver escala diferente em mente.
+  const diagnosisCatalog = [
+    { nameDiagnosis: 'TEA - Nível de suporte 1', stage: 1 },
+    { nameDiagnosis: 'TEA - Nível de suporte 2', stage: 2 },
+    { nameDiagnosis: 'TEA - Nível de suporte 3', stage: 3 },
+    { nameDiagnosis: 'TDAH', stage: 1 },
+    { nameDiagnosis: 'Deficiência Intelectual', stage: 1 },
+    { nameDiagnosis: 'Atraso Global do Desenvolvimento', stage: 1 },
+    { nameDiagnosis: 'Transtorno do Desenvolvimento da Linguagem (TDL)', stage: 1 },
+    { nameDiagnosis: 'Transtorno Específico da Aprendizagem (Dislexia)', stage: 1 },
+    { nameDiagnosis: 'Discalculia', stage: 1 },
+    { nameDiagnosis: 'Síndrome de Down', stage: 1 },
+    { nameDiagnosis: 'Síndrome do X Frágil', stage: 1 },
+    { nameDiagnosis: 'Síndrome de Rett', stage: 1 },
+    { nameDiagnosis: 'Síndrome de Williams', stage: 1 },
+    { nameDiagnosis: 'Síndrome de Angelman', stage: 1 },
+    { nameDiagnosis: 'Paralisia Cerebral', stage: 1 },
+    { nameDiagnosis: 'Deficiência Auditiva', stage: 1 },
+    { nameDiagnosis: 'Deficiência Visual', stage: 1 },
+    { nameDiagnosis: 'Epilepsia', stage: 1 },
+    { nameDiagnosis: 'Transtorno do Processamento Sensorial', stage: 1 },
+    { nameDiagnosis: 'Transtornos Motores', stage: 1 },
+    { nameDiagnosis: 'Altas Habilidades/Superdotação', stage: 1 },
+    { nameDiagnosis: 'Diagnóstico em investigação', stage: 1 },
+  ];
   const existingDiagnoses = await db.select().from(diagnoses);
-  if (existingDiagnoses.length === 0) {
-    await db.insert(diagnoses).values([
-      { nameDiagnosis: 'TEA - Nível de suporte 1', stage: 1 },
-      { nameDiagnosis: 'TEA - Nível de suporte 2', stage: 2 },
-      { nameDiagnosis: 'TEA - Nível de suporte 3', stage: 3 },
-      { nameDiagnosis: 'TDAH', stage: 1 },
-      { nameDiagnosis: 'Síndrome de Down', stage: 1 },
-    ]);
-    console.log('✓ Diagnoses semeada (5 linhas)');
+  const existingDiagnosisNames = new Set(
+    existingDiagnoses.map((diagnosis) => diagnosis.nameDiagnosis),
+  );
+  const missingDiagnoses = diagnosisCatalog.filter(
+    (diagnosis) => !existingDiagnosisNames.has(diagnosis.nameDiagnosis),
+  );
+  if (missingDiagnoses.length > 0) {
+    await db.insert(diagnoses).values(missingDiagnoses);
+    console.log(`✓ Diagnoses atualizada (+${missingDiagnoses.length} opções)`);
   } else {
-    console.log('- Diagnoses já tinha dados, pulei');
+    console.log('- Diagnoses já está completa, pulei');
   }
 
   // ---------- Therapy ----------

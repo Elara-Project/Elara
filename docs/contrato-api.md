@@ -1404,11 +1404,19 @@ Pra rodar no Collection Runner: todos devem **passar** (cada um espera o erro ce
 - **Resposta de sucesso:** `400` — modelo **Usuário**
 - Prova que ninguém consegue se promover a admin pelo body.
 
-## 4. Pendências e limitações conhecidas
+## 4. Campos adicionais e cuidados
+
+- `POST/PATCH /children` também aceita `diagnosesIds` (lista de IDs), `school` e `cid`. A resposta de criança inclui `diagnosesIds`; `diagnosesIdDiagnoses` continua disponível para compatibilidade.
+- `POST/PATCH /children/:childId/clinical-data` aceita `allergiesIds` (lista de IDs). A resposta inclui `allergiesIds`; o campo singular antigo continua disponível.
+- `GET/POST /children/:childId/care` lista e registra itens de alimentação e horários. Cada item recebe `kind` (`alimentacao` ou `horario`), `title`, `details` e, opcionalmente, `time` e `weekdays`. `PATCH/DELETE /children/:childId/care/:id` atualiza ou remove o item.
+- Perfil (`GET /users/me`, `PATCH /users/:id`) inclui `cpf` e `phone` opcionais.
+- Lembretes vencidos são enviados por e-mail a cada minuto quando `RESEND_API_KEY` e `RESEND_FROM_EMAIL` estão configurados no servidor. Contas com notificações desativadas não recebem o envio.
+
+## 5. Pendências e limitações conhecidas
 
 Pra ninguém se surpreender na hora de integrar ou apresentar:
 
-1. **Notificações:** o lembrete (`notify`) é cadastrado, mas **ainda não existe o envio real** no horário. Falta o job agendado e a escolha do canal (push/e-mail).
+1. **Notificações:** o canal implementado é e-mail via Resend e depende das credenciais configuradas no ambiente de produção.
 2. **Documentos (`/media`) e assistente de IA (`/ai-assistant`)** estão implementados, mas **ainda em validação** — podem ter ajustes.
 3. **Promover alguém a admin** é manual no banco (não há endpoint). Não existe tela de administração.
 4. **Troca de senha / recuperação de senha:** não existe.
