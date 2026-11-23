@@ -16,6 +16,12 @@ export class UpdateClinicalDataDto {
   therapyIdTherapy?: number;
 
   @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @IsInt({ each: true })
+  therapyIds?: number[];
+
+  @IsOptional()
   @IsInt()
   allergiesIdAllergies?: number;
 

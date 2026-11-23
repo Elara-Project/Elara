@@ -198,6 +198,26 @@ export const clinicalDataAllergies = mysqlTable('ClinicalDataAllergies', {
   fkAllergy: foreignKey({ name: 'fk_clindataallergies_allergy', columns: [table.allergiesIdAllergies], foreignColumns: [allergies.idAllergies] }),
 }));
 
+export const clinicalDataTherapies = mysqlTable('ClinicalDataTherapies', {
+  clinicalDataIdClinicalData: int('ClinicalData_idClinicalData').notNull(),
+  therapyIdTherapy: int('Therapy_idTherapy').notNull(),
+}, (table) => ({
+  pk: primaryKey({ name: 'pk_clinical_data_therapies', columns: [table.clinicalDataIdClinicalData, table.therapyIdTherapy] }),
+  fkClinicalData: foreignKey({ name: 'fk_clindatatherapies_data', columns: [table.clinicalDataIdClinicalData], foreignColumns: [clinicalData.idClinicalData] }),
+  fkTherapy: foreignKey({ name: 'fk_clindatatherapies_therapy', columns: [table.therapyIdTherapy], foreignColumns: [therapy.idTherapy] }),
+}));
+
+export const clinicalDataTherapiesRelations = relations(clinicalDataTherapies, ({ one }) => ({
+  clinicalData: one(clinicalData, {
+    fields: [clinicalDataTherapies.clinicalDataIdClinicalData],
+    references: [clinicalData.idClinicalData],
+  }),
+  therapy: one(therapy, {
+    fields: [clinicalDataTherapies.therapyIdTherapy],
+    references: [therapy.idTherapy],
+  }),
+}));
+
 export const careItems = mysqlTable('CareItems', {
   idCareItem: int('idCareItem').autoincrement().primaryKey(),
   childrenIdChildren: int('Children_idChildren').notNull(),
@@ -467,8 +487,13 @@ export const clinicalDataRelations = relations(clinicalData, ({ one, many }) => 
     fields: [clinicalData.allergiesIdAllergies],
     references: [allergies.idAllergies],
   }),
+  therapies: many(clinicalDataTherapies),
   prescriptions: many(prescriptions),
   appointments: many(appointments),
+}));
+
+export const therapyRelations = relations(therapy, ({ many }) => ({
+  clinicalData: many(clinicalDataTherapies),
 }));
 
 export const prescriptionsRelations = relations(prescriptions, ({ one }) => ({

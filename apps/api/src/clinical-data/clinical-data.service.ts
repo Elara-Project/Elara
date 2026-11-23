@@ -7,7 +7,7 @@ import {
 import { eq } from 'drizzle-orm';
 import { DRIZZLE } from '../db/drizzle.module';
 import type { DrizzleDb } from '../db/drizzle.module';
-import { clinicalData, children, clinicalDataAllergies } from '../db/schema';
+import { clinicalData, children, clinicalDataAllergies, clinicalDataTherapies } from '../db/schema';
 import { ChildrenService } from '../children/children.service';
 import { TherapyService } from '../therapy/therapy.service';
 import { AllergiesService } from '../allergies/allergies.service';
@@ -29,6 +29,7 @@ export class ClinicalDataService {
   async createForChild(userIdUser: number, idChildren: number, dto: CreateClinicalDataDto) {
     const child = await this.childrenService.findOne(userIdUser, idChildren);
     const allergyIds = [...new Set(dto.allergiesIds ?? (dto.allergiesIdAllergies ? [dto.allergiesIdAllergies] : []))];
+    const therapyIds = [...new Set(dto.therapyIds ?? (dto.therapyIdTherapy ? [dto.therapyIdTherapy] : []))];
 
     if (child.clinicalDataIdClinicalData) {
       throw new ConflictException('Essa criança já tem um prontuário clínico');
@@ -39,7 +40,7 @@ export class ClinicalDataService {
         familyHistory: dto.familyHistory,
         observations: dto.observations,
         lastUpdate: new Date(),
-        therapyIdTherapy: dto.therapyIdTherapy,
+        therapyIdTherapy: therapyIds[0] ?? null,
         allergiesIdAllergies: allergyIds[0] ?? null,
       });
 
@@ -53,8 +54,9 @@ export class ClinicalDataService {
       // Mesma lógica de contador de uso que já aplicamos em ChildrenService
       // pra Relationship/Diagnoses — aqui é Therapy/Allergies, e ambos são
       // opcionais (prontuário pode nascer sem terapia/alergia definida).
-      if (dto.therapyIdTherapy) {
-        await this.therapyService.incrementUsage(dto.therapyIdTherapy, tx);
+      if (therapyIds.length) {
+        await tx.insert(clinicalDataTherapies).values(therapyIds.map((therapyIdTherapy) => ({ clinicalDataIdClinicalData: newIdClinicalData, therapyIdTherapy })));
+        for (const id of therapyIds) await this.therapyService.incrementUsage(id, tx);
       }
       if (allergyIds.length) {
         await tx.insert(clinicalDataAllergies).values(allergyIds.map((allergiesIdAllergies) => ({ clinicalDataIdClinicalData: newIdClinicalData, allergiesIdAllergies })));
@@ -76,7 +78,12 @@ export class ClinicalDataService {
       throw new NotFoundException(`ClinicalData ${idClinicalData} não encontrado`);
     }
     const links = await this.db.select().from(clinicalDataAllergies).where(eq(clinicalDataAllergies.clinicalDataIdClinicalData, idClinicalData));
-    return { ...found, allergiesIds: links.length ? links.map((link) => link.allergiesIdAllergies) : (found.allergiesIdAllergies ? [found.allergiesIdAllergies] : []) };
+    const therapyLinks = await this.db.select().from(clinicalDataTherapies).where(eq(clinicalDataTherapies.clinicalDataIdClinicalData, idClinicalData));
+    return {
+      ...found,
+      therapyIds: therapyLinks.length ? therapyLinks.map((link) => link.therapyIdTherapy) : (found.therapyIdTherapy ? [found.therapyIdTherapy] : []),
+      allergiesIds: links.length ? links.map((link) => link.allergiesIdAllergies) : (found.allergiesIdAllergies ? [found.allergiesIdAllergies] : []),
+    };
   }
 
   // Não existe FK ClinicalData -> User, então "esse prontuário é seu?" só
@@ -91,6 +98,7 @@ export class ClinicalDataService {
 
   async updateForChild(userIdUser: number, idChildren: number, dto: UpdateClinicalDataDto) {
     const current = await this.findOneForChild(userIdUser, idChildren); // valida ownership em cascata
+    const nextTherapies = dto.therapyIds ?? (dto.therapyIdTherapy !== undefined ? (dto.therapyIdTherapy ? [dto.therapyIdTherapy] : []) : undefined);
 
     await this.db.transaction(async (tx) => {
       await tx
@@ -98,17 +106,21 @@ export class ClinicalDataService {
         .set({
           ...(dto.familyHistory !== undefined ? { familyHistory: dto.familyHistory } : {}),
           ...(dto.observations !== undefined ? { observations: dto.observations } : {}),
-          ...(dto.therapyIdTherapy !== undefined ? { therapyIdTherapy: dto.therapyIdTherapy } : {}),
+          ...(nextTherapies !== undefined ? { therapyIdTherapy: nextTherapies[0] ?? null } : {}),
           ...(dto.allergiesIds !== undefined ? { allergiesIdAllergies: dto.allergiesIds[0] ?? null } : dto.allergiesIdAllergies !== undefined ? { allergiesIdAllergies: dto.allergiesIdAllergies } : {}),
           lastUpdate: new Date(),
         })
         .where(eq(clinicalData.idClinicalData, current.idClinicalData));
 
-      if (dto.therapyIdTherapy && dto.therapyIdTherapy !== current.therapyIdTherapy) {
-        if (current.therapyIdTherapy) {
-          await this.therapyService.decrementUsage(current.therapyIdTherapy, tx);
+      if (nextTherapies !== undefined) {
+        const oldSet = new Set(current.therapyIds ?? []);
+        const newSet = new Set(nextTherapies);
+        await tx.delete(clinicalDataTherapies).where(eq(clinicalDataTherapies.clinicalDataIdClinicalData, current.idClinicalData));
+        if (newSet.size) {
+          await tx.insert(clinicalDataTherapies).values([...newSet].map((therapyIdTherapy) => ({ clinicalDataIdClinicalData: current.idClinicalData, therapyIdTherapy })));
         }
-        await this.therapyService.incrementUsage(dto.therapyIdTherapy, tx);
+        for (const id of oldSet) if (!newSet.has(id)) await this.therapyService.decrementUsage(id, tx);
+        for (const id of newSet) if (!oldSet.has(id)) await this.therapyService.incrementUsage(id, tx);
       }
 
       const nextAllergies = dto.allergiesIds ?? (dto.allergiesIdAllergies !== undefined ? (dto.allergiesIdAllergies ? [dto.allergiesIdAllergies] : []) : undefined);
