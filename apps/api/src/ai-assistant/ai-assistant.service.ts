@@ -44,9 +44,9 @@ export class AiAssistantService {
     let answerText: string;
     try {
       const response = await client.models.generateContent({
-        // Flash-Lite não-preview: modelo estável do tier grátis, sem risco
-        // de ser descontinuado no meio do semestre como um "preview" pode.
-        model: 'gemini-2.5-flash-lite',
+        // Flash-Lite atual para novas integrações. O 2.5 Flash-Lite deixou
+        // de estar disponível para novos usuários da API Gemini.
+        model: 'gemini-3.5-flash-lite',
         contents: question,
         config: { systemInstruction: SYSTEM_PROMPT },
       });
