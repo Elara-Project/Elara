@@ -1,5 +1,5 @@
 import { BadRequestException, Inject, Injectable, InternalServerErrorException, ServiceUnavailableException } from '@nestjs/common';
-import { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, type Content } from '@google/genai';
 import { and, desc, eq, gte } from 'drizzle-orm';
 import { DRIZZLE } from '../db/drizzle.module';
 import type { DrizzleDb } from '../db/drizzle.module';
@@ -21,7 +21,10 @@ Sempre que a pergunta envolver decisão clínica, ajuste de medicação, ou
 qualquer sintoma preocupante, oriente claramente a buscar um profissional
 qualificado antes de agir.
 
-Seja empático, direto e evite jargão técnico desnecessário.`;
+Seja empático, direto e evite jargão técnico desnecessário. Converse de forma
+natural, levando em conta as mensagens recentes. Para perguntas curtas ou
+respostas de continuidade, use o contexto anterior. Evite títulos Markdown e
+listas longas, a menos que a pessoa peça passos ou uma lista.`;
 
 @Injectable()
 export class AiAssistantService {
@@ -41,6 +44,20 @@ export class AiAssistantService {
     }
     await this.assertUnderDailyLimit(userIdUser);
 
+    // Envia algumas trocas recentes para que perguntas consecutivas e os
+    // atalhos de sugestão sejam entendidos como uma conversa contínua.
+    const recentChats = await this.db
+      .select({ questions: aiAssistant.questions, answer: aiAssistant.answer })
+      .from(aiAssistant)
+      .where(eq(aiAssistant.userIdUser, userIdUser))
+      .orderBy(desc(aiAssistant.dateTime))
+      .limit(4);
+    const contents: Content[] = recentChats.reverse().flatMap((chat) => [
+      { role: 'user', parts: [{ text: chat.questions }] },
+      { role: 'model', parts: [{ text: chat.answer }] },
+    ]);
+    contents.push({ role: 'user', parts: [{ text: question }] });
+
     let answerText: string;
     try {
       // Chamadas feitas em sequência podem encontrar o limite momentâneo do
@@ -52,7 +69,7 @@ export class AiAssistantService {
             // Flash-Lite atual para novas integrações. O 2.5 Flash-Lite deixou
             // de estar disponível para novos usuários da API Gemini.
             model: 'gemini-3.5-flash-lite',
-            contents: question,
+            contents,
             config: { systemInstruction: SYSTEM_PROMPT },
           });
           answerText = response.text ?? '';
